@@ -1,4 +1,5 @@
 const { get } = require('http')
+// https://nodejs.org/docs/latest-v5.x/api/http.html#http_http_methods
 
 
 // the get method in node calls req.end() automatically
