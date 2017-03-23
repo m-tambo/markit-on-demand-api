@@ -1,9 +1,9 @@
 const { get } = require('http')
 // https://nodejs.org/docs/latest-v5.x/api/http.html#http_http_methods
-
+const companySymbol = process.argv[2] || 'AAPL'
 
 // the get method in node calls req.end() automatically
-get('http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters={"Normalized":false,"NumberOfDays":365,"DataPeriod":"Day","Elements":[{"Symbol":"AAPL","Type":"price","Params":["c"]}]}', (res) => {
+get(`http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters={"Normalized":false,"NumberOfDays":365,"DataPeriod":"Day","Elements":[{"Symbol":"${companySymbol}","Type":"price","Params":["c"]}]}`, (res) => {
   const statusCode = res.statusCode;
   const contentType = res.headers['content-type'];
 
@@ -21,16 +21,13 @@ get('http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?paramete
 
   res.setEncoding('utf8');
   let rawData = '';
-  res.on('data', (chunk) => {
-    // console.log("chunk:", chunk)
-    rawData += chunk
-  });
+  res.on('data', chunk => rawData += chunk);
 
   res.on('end', () => { // once the stream ends, try to parse the data
     try {
       let parsedData = JSON.parse(rawData);
 
-      manipulate(parsedData) // inserting my function heeeere
+      getAverage(parsedData) // inserting my function heeeere
 
     } catch (e) {
       console.log(e.message);
@@ -40,6 +37,12 @@ get('http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?paramete
   console.log(`Got error: ${e.message}`);
 });
 
-const manipulate = (data) => {
-  console.log("stock quotes:", data)
+const getAverage = (data) => {
+  let quotes = data.Elements[0].DataSeries.close.values
+  // console.log("quotes.length:", quotes.length)
+  let sum = 0
+  for (i = 0; i < quotes.length; i++) {
+    sum += Number(quotes[i])
+  }
+  console.log(`The average price of ${companySymbol} stock over the last year was $${sum/(quotes.length)}.`)
 }
